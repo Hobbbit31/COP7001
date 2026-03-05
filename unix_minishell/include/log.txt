@@ -1,0 +1,3 @@
+history -c
+ls
+sleep 5

@@ -1,0 +1,35 @@
+How AST and SymTab Are Used
+
+AST (Abstract Syntax Tree)
+--------------------------
+Where it is built:
+- src/parser.y: Bison actions create AST nodes for every construct.
+  Examples: ast_make_var_decl(), ast_make_assign(), ast_make_if(), ast_make_while(),
+  ast_make_binop(), ast_make_unop(), ast_make_int(), ast_make_ident().
+
+Where it is consumed:
+- src/ast.c: ast_fold_constants() simplifies constant-only expressions for AST output.
+- src/eval.c: eval_program() walks the AST and performs semantic checks + constant-only evaluation.
+- src/main.c: after parsing, eval_program(root) is called; ast_free(root) cleans up.
+- src/ast.c / src/ast.h: define node types and implement constructors + freeing.
+
+What it contains:
+- Nodes for program, block, declarations, assignments, control flow, and expressions.
+- Each node stores a line number for error reporting (node->line).
+
+SymTab (Symbol Table)
+---------------------
+Where it is created and used:
+- src/eval.c: eval_program() initializes the global scope with symtab_create(NULL).
+- src/eval.c: each block introduces a new scope with symtab_push() and closes it with
+  symtab_pop().
+
+How it is used:
+- Declarations: symtab_declare() registers variables in the current scope.
+- Assignments: symtab_set() updates values for existing variables.
+- Reads: identifiers are checked for declaration, but values are not read.
+- Checks: symtab_is_declared() enforces "declare before use".
+- Output: symtab_dump() prints a post-evaluation summary of variable values.
+
+Where it is implemented:
+- src/symtab.c / src/symtab.h: scope chain, insert/find, set/get helpers.
